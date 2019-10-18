@@ -28,6 +28,10 @@ const Navbar = () => {
 
 				<Menu fluid tabular>
 					<Menu.Menu position="right">
+						<Menu.Item>ok</Menu.Item>
+					</Menu.Menu>
+
+					<Menu.Menu position="right">
 						<Dropdown text="Setting" item simple>
 							<Dropdown.Menu>
 								{!auth.isLogin ? (

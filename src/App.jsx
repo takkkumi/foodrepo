@@ -1,11 +1,12 @@
 import React, { useState, useEffect, createContext } from "react"
 import { Grid, Container } from "semantic-ui-react"
-
+import { Route, Switch } from "react-router-dom"
 import HomePage from "./components/Home/HomePage"
 import SideBar from "./components/SideBar/SideBar"
 
 import firebase from "./config/firebase-config"
 import Navbar from "./components/Header/Navbar"
+import UserPage from "./components/Home/UserPage"
 export const UserContext = createContext()
 const App = () => {
 	const [user, setUser] = useState(null)
@@ -35,7 +36,14 @@ const App = () => {
 							<SideBar />
 						</Grid.Column>
 						<Grid.Column width={13}>
-							<HomePage />
+							<Switch>
+								<Route path="/" exact>
+									<HomePage />
+								</Route>
+								<Route path="/user" exact>
+									<UserPage />
+								</Route>
+							</Switch>
 						</Grid.Column>
 					</Grid.Row>
 				</Grid>
