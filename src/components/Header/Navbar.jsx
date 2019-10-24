@@ -3,14 +3,12 @@ import { Header, Image, Menu, Container, Dropdown } from "semantic-ui-react"
 import { UserContext } from "../../App"
 import firebase from "firebase/app"
 import "firebase/auth"
+import LoginUser from "../../Actions/userActions/LoginUser"
 
 const Navbar = () => {
 	const auth = useContext(UserContext)
 	const user = auth.user
-	const googleLogin = () => {
-		const provider = new firebase.auth.GoogleAuthProvider()
-		firebase.auth().signInWithPopup(provider)
-	}
+
 	const SignOut = () => {
 		firebase.auth().signOut()
 	}
@@ -35,7 +33,7 @@ const Navbar = () => {
 						<Dropdown text="Setting" item simple>
 							<Dropdown.Menu>
 								{!auth.isLogin ? (
-									<Dropdown.Item onClick={() => googleLogin()}>
+									<Dropdown.Item onClick={() => LoginUser()}>
 										LogIn
 									</Dropdown.Item>
 								) : (
