@@ -10,6 +10,7 @@ import UserPage from "./components/Home/UserPage"
 export const UserContext = createContext()
 const App = () => {
 	const [user, setUser] = useState(null)
+	const [storeUser, setStoreUser] = useState(null)
 	const [isLogin, setIsLogin] = useState(false)
 	useEffect(() => {
 		firebase.auth().onAuthStateChanged(currentUser => {
@@ -21,10 +22,24 @@ const App = () => {
 				setIsLogin(false)
 			}
 		})
-	}, [isLogin, user])
+		const getFirestoreState = async () => {
+			try {
+				let loginUser = await firebase
+					.firestore()
+					.collection("user")
+					.doc(user.uid)
+					.get()
+				setStoreUser(loginUser.data())
+			} catch (error) {
+				console.log(error)
+			}
+		}
+		getFirestoreState()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user])
 
 	return (
-		<UserContext.Provider value={{ user, isLogin }}>
+		<UserContext.Provider value={{ user, isLogin, storeUser }}>
 			<Container>
 				<Grid>
 					<Grid.Row>

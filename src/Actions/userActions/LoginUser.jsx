@@ -7,34 +7,31 @@ const LoginUser = async () => {
 	let Login = await firebase.auth().signInWithPopup(provider)
 	const isNewUser = Login.additionalUserInfo.isNewUser
 	const user = Login.user
-	console.log(user)
-	const db = firebase.firestore()
 
-	await db
-		.collection("user")
-		.doc(String(user.uid))
-		.set(
-			{
-				userUid: user.uid,
-				name: user.displayName,
-				email: user.email,
-				userPhoto: user.photoURL
-			},
-			{ merge: true }
-		)
-	if (isNewUser) {
-		db.collection("user")
-			.doc(String(user.uid))
-			.update({
-				createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-				lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-			})
-	} else {
-		db.collection("user")
-			.doc(String(user.uid))
-			.update({
-				lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-			})
+	const db = firebase.firestore()
+	const now = firebase.firestore.FieldValue.serverTimestamp()
+	try {
+		if (isNewUser) {
+			await db
+				.collection("user")
+				.doc(String(user.uid))
+				.set({
+					userUid: user.uid,
+					name: user.displayName,
+					email: user.email,
+					userPhoto: user.photoURL,
+					createdAt: now,
+					lastLogin: now
+				})
+		} else {
+			db.collection("user")
+				.doc(String(user.uid))
+				.update({
+					lastLogin: now
+				})
+		}
+	} catch (error) {
+		console.log(error)
 	}
 }
 
