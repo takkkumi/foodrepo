@@ -15,28 +15,35 @@ const App = () => {
 	useEffect(() => {
 		firebase.auth().onAuthStateChanged(currentUser => {
 			if (currentUser) {
-				setUser(currentUser)
+				if (currentUser !== user) {
+					setUser(currentUser)
+				}
 				setIsLogin(true)
+				const getFirestoreState = async () => {
+					try {
+						if (user) {
+							let loginUser = await firebase
+								.firestore()
+								.collection("user")
+								.doc(user.uid)
+								.get()
+							setStoreUser(loginUser.data())
+						}
+					} catch (error) {
+						console.log(error)
+					}
+				}
+
+				getFirestoreState()
 			} else {
 				setUser(null)
 				setIsLogin(false)
+				setStoreUser(null)
 			}
 		})
-		const getFirestoreState = async () => {
-			try {
-				let loginUser = await firebase
-					.firestore()
-					.collection("user")
-					.doc(user.uid)
-					.get()
-				setStoreUser(loginUser.data())
-			} catch (error) {
-				console.log(error)
-			}
-		}
-		getFirestoreState()
+		console.log("render")
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [user])
+	}, [user, isLogin])
 
 	return (
 		<UserContext.Provider value={{ user, isLogin, storeUser }}>

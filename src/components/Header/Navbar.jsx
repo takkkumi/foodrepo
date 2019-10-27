@@ -4,21 +4,24 @@ import { UserContext } from "../../App"
 import firebase from "firebase/app"
 import "firebase/auth"
 import LoginUser from "../../Actions/userActions/LoginUser"
+import { japDate } from "../../util/Date"
 
 const Navbar = () => {
 	const auth = useContext(UserContext)
-	const user = auth.user
+	const user = auth.storeUser
 
 	const SignOut = () => {
 		firebase.auth().signOut()
 	}
+
 	return (
 		<Container>
 			<Header as="h2" color="orange">
 				{user ? (
 					<>
-						Hello {user.displayName}{" "}
-						<Image size="mini" src={user.photoURL} verticalAlign="top" />
+						Hello {user.name}{" "}
+						<Image size="mini" src={user.userPhoto} verticalAlign="top" />
+						{japDate(user.lastLogin.toDate(), "yo年MMMdo日HH時mm分")}
 					</>
 				) : (
 					"Hello"

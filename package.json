@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "date-fns": "^2.6.0",
+    "date-fns-tz": "^1.0.8",
     "firebase": "^7.2.1",
     "firebase-admin": "^8.6.1",
     "react": "^16.10.2",
