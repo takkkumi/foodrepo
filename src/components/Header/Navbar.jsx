@@ -1,4 +1,4 @@
-import React, { useContext } from "react"
+import React, { useContext, useState, useEffect } from "react"
 import { Header, Image, Menu, Container, Dropdown } from "semantic-ui-react"
 import { UserContext } from "../../App"
 import firebase from "firebase/app"
@@ -9,11 +9,15 @@ import { japDate } from "../../util/Date"
 const Navbar = () => {
 	const auth = useContext(UserContext)
 	const user = auth.storeUser
-
+	const [userLogin, setUserLogin] = useState("")
 	const SignOut = () => {
 		firebase.auth().signOut()
 	}
-
+	useEffect(() => {
+		if (user && user.lastLogin && user.lastLogin.toDate()) {
+			setUserLogin(japDate(user.lastLogin.toDate(), "yo年MMMdo日HH時mm分"))
+		}
+	}, [user])
 	return (
 		<Container>
 			<Header as="h2" color="orange">
@@ -21,7 +25,7 @@ const Navbar = () => {
 					<>
 						Hello {user.name}{" "}
 						<Image size="mini" src={user.userPhoto} verticalAlign="top" />
-						{japDate(user.lastLogin.toDate(), "yo年MMMdo日HH時mm分")}
+						{userLogin}
 					</>
 				) : (
 					"Hello"

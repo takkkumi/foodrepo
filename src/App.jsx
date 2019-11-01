@@ -7,6 +7,9 @@ import SideBar from "./components/SideBar/SideBar"
 import firebase from "./config/firebase-config"
 import Navbar from "./components/Header/Navbar"
 import UserPage from "./components/Home/UserPage"
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+toast.configure()
 export const UserContext = createContext()
 const App = () => {
 	const [user, setUser] = useState(null)
@@ -43,7 +46,7 @@ const App = () => {
 		})
 		console.log("render")
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [user, isLogin])
+	}, [isLogin])
 
 	return (
 		<UserContext.Provider value={{ user, isLogin, storeUser }}>
@@ -69,6 +72,7 @@ const App = () => {
 						</Grid.Column>
 					</Grid.Row>
 				</Grid>
+				<ToastContainer />
 			</Container>
 		</UserContext.Provider>
 	)
