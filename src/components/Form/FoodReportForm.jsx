@@ -1,20 +1,27 @@
 import React, { useState, useEffect, useContext, createContext } from "react";
 import _ from "lodash";
-import { Form, Button, Dropdown, Rating, Checkbox } from "semantic-ui-react";
+import {
+  Form,
+  Button,
+  Dropdown,
+  Rating,
+  Checkbox,
+  Label
+} from "semantic-ui-react";
 import useForm, { FormContext } from "react-hook-form";
 import { UserContext } from "../../App";
 import {
   FormResetState,
   FormFetchData,
-  FormIsError,
-  FirebaseRegister
+  FormIsError
 } from "../../Actions/FormAction";
 import { toast } from "react-toastify";
 import GoogleMapSearchForm from "./GoogleMapSearchForm";
 import firebase from "firebase/app";
 import "firebase/firestore";
 import FoodrepoPhotoPage from "../Photo/FoodrepoPhotoPage";
-import { uploadProfileImage } from "../../Actions/PhotoAction";
+import { uploadImage } from "../../Actions/PhotoAction";
+import { FirebaseRegister, batchSetter } from "../../Actions/FirestoreAction";
 // import PlacesAutocompleteForm from "./PlacesAutocompleteForm"
 export const FoodReportContext = createContext();
 const FoodReportForm = () => {
@@ -28,71 +35,151 @@ const FoodReportForm = () => {
     { key: 5, text: "ラーメン", value: "ramen" },
     { key: 6, text: "居酒屋", value: "tevern" }
   ]);
-  const handleUploadImages = async (foodRepoId, image) => {
-    try {
-      await uploadProfileImage(image, `${user.userUid}/foodrepo/${foodRepoId}`);
 
-      toast.success("プロフィール画像を更新しました");
-    } catch (error) {
-      console.log(error);
-      toast.error("画像をアップロード出来ませんでした");
-    }
-  };
   const methods = useForm();
-  const [isRating, setIsRating] = useState(false);
-  const [isGoogleMapOpen, setIsGoogleMapOpen] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const [result, setResult] = useState(null)
-  // const [childFunction, setChildFunction] = useState({})
-  const resetState = data => {
-    FormResetState(initialFoodRepoState, data, methods.setValue);
-    setIsGoogleMapOpen(false);
-    setInitialFoodRepoState({
-      ...initialFoodRepoState,
-      ...{ placeLatLng: null }
-    });
-    setIsSubmitting(true);
-  };
-  const [initialFoodRepoState, setInitialFoodRepoState] = useState({
+  const defaultInitialFoodRepoState = {
     author: "",
+    authorName: "",
     title: "",
     place: "",
     placeLatLng: null,
     rating: null,
     tag: [],
-    MainImageURL: "",
-    images: [],
+    mainImage: null,
     description: "",
-    text: "",
-    herePlaceLatLng: null
-  });
+    text: ""
+  };
+  const defaultAdhocForStore = {
+    herePlaceLatLng: null,
+    cacheRating: null,
+    mainImage: null,
+    images: [],
+    isRating: false,
+    isGoogleMapOpen: false,
+    isLoading: false
+  };
+  const [initialFoodRepoState, setInitialFoodRepoState] = useState(
+    defaultInitialFoodRepoState
+  );
+  const [adhocFormStore, setAdhocFormStore] = useState(defaultAdhocForStore);
+
+  const resetState = data => {
+    FormResetState(initialFoodRepoState, data, methods.setValue);
+
+    setInitialFoodRepoState(defaultInitialFoodRepoState);
+    setAdhocFormStore(defaultAdhocForStore);
+    setIsSubmitting(true);
+  };
+  const handleUploadImage = async (foodRepoId, image) => {
+    try {
+      const uploadedImage = await uploadImage(
+        image,
+        `${user.userUid}/foodrepo/${foodRepoId}`
+      );
+      const uploadedImageURL = await uploadedImage.ref.getDownloadURL();
+      const uploadedImageRef = uploadedImage.ref.fullPath;
+      const uploadedImageName = uploadedImage.ref.name;
+
+      return {
+        url: uploadedImageURL,
+        path: uploadedImageRef,
+        name: uploadedImageName
+      };
+    } catch (error) {
+      console.log(error);
+      toast.error("画像をアップロード出来ませんでした");
+    }
+  };
   const onChange = async (e, { name, value }) => {
     e.preventDefault();
-
     methods.setValue(name, value);
     await methods.triggerValidation({ name });
   };
-  const onSubmit = data => {
-    const geoPoint = new firebase.firestore.GeoPoint(
-      initialFoodRepoState.placeLatLng.lat,
-      initialFoodRepoState.placeLatLng.lng
-    );
+  const onSubmit = async data => {
+    setAdhocFormStore({ ...adhocFormStore, isLoading: true });
+    const foodrepo = "foodrepo";
+    const collection = firebase.firestore().collection(foodrepo);
+    const foodRepoDocId = initialFoodRepoState.id || collection.doc().id;
+    const foodRepoDocRef = collection.doc(foodRepoDocId);
+    let batch = firebase.firestore().batch();
     const now = firebase.firestore.FieldValue.serverTimestamp();
     const APIdata = {
-      placeLatLng: geoPoint,
       updatedAt: now,
       createdAt: initialFoodRepoState.createdAt || now
     };
+    if (initialFoodRepoState.placeLatLng) {
+      const geoPoint = new firebase.firestore.GeoPoint(
+        initialFoodRepoState.placeLatLng.lat,
+        initialFoodRepoState.placeLatLng.lng
+      );
+      APIdata.placeLatLng = geoPoint;
+    }
 
+    APIdata.ref = foodRepoDocRef;
+    let Images;
+
+    if (adhocFormStore.mainImage) {
+      const mainImage = await handleUploadImage(
+        foodRepoDocId,
+        adhocFormStore.mainImage
+      );
+      APIdata.mainImage = mainImage;
+      Images = [mainImage];
+
+      await Promise.all(
+        _.without(adhocFormStore.images, adhocFormStore.mainImage).map(
+          async image => {
+            const uploadImage = await handleUploadImage(foodRepoDocId, image);
+            uploadImage.createdAt = now;
+            Images.push(uploadImage);
+          }
+        )
+      );
+    }
     const formSubmit = FormFetchData(initialFoodRepoState, data, APIdata);
-    delete formSubmit.herePlaceLatLng;
 
-    console.log(initialFoodRepoState, data, formSubmit);
+    await FirebaseRegister(formSubmit, foodrepo, foodRepoDocId);
+
+    Images &&
+      Images.forEach(image => {
+        image.createdAt = now;
+        batchSetter(
+          image,
+          foodrepo,
+          foodRepoDocId,
+          "set",
+          batch,
+          "photo",
+          image.name
+        );
+      });
+    const searchField = {
+      author: user.userUid,
+      authorName: user.name,
+      tag: data.tag ? data.tag : [],
+      title: data.title,
+      mainImageURL: _.get(APIdata, "mainImage.url") || null,
+      eventPath: APIdata.ref,
+      fulltextsearch: _.chain([user.name, data.title, data.tag])
+        .flattenDeep()
+        .compact()
+        .value()
+    };
+    batchSetter(searchField, "eventSearch", foodRepoDocId, "set", batch);
+    console.log(searchField);
+    await batch.commit();
+
     resetState(data);
-    FirebaseRegister("foodrepo", formSubmit, null, true);
     toast.success(`『${formSubmit.title}』を更新しました`);
+    setAdhocFormStore({
+      ...adhocFormStore,
+      isLoading: false,
+      mainImage: null,
+      images: []
+    });
   };
-
   useEffect(() => {
     methods.register(
       { name: "title" },
@@ -125,24 +212,26 @@ const FoodReportForm = () => {
         maxLength: { value: 1800, message: "本文は1800文字以内にしてください" }
       }
     );
+    methods.register({ name: "rating" });
     if (user) {
       setInitialFoodRepoState({
         ...initialFoodRepoState,
-        ...{ author: user.userUid }
+        ...{ author: user.userUid, authorName: user.name }
       });
     }
     setIsSubmitting(false);
-    console.log(initialFoodRepoState);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isSubmitting, auth.isLogin]);
+  }, [user, isSubmitting]);
   return (
     <FoodReportContext.Provider
       value={{
         initialFoodRepoState,
         setInitialFoodRepoState,
         isSubmitting,
-        setIsSubmitting
+        setIsSubmitting,
+        adhocFormStore,
+        setAdhocFormStore
       }}
     >
       <FormContext {...methods}>
@@ -180,51 +269,56 @@ const FoodReportForm = () => {
                 <Checkbox
                   label="レーティングを有効にする"
                   onChange={(e, { checked }) => {
-                    setIsRating(checked);
-                    !checked &&
-                      setInitialFoodRepoState({
-                        ...initialFoodRepoState,
-                        rating: null
-                      });
+                    setAdhocFormStore({ ...adhocFormStore, isRating: checked });
+
+                    methods.setValue(
+                      "rating",
+                      checked ? adhocFormStore.cacheRating : null
+                    );
                   }}
                 />
               </label>
-              {isRating && (
+              {adhocFormStore.isRating && (
                 <Rating
+                  name="rating"
                   icon="heart"
                   size="massive"
-                  disabled={!isRating}
-                  value={initialFoodRepoState.rating}
+                  value={methods.watch("rating") || 3}
                   maxRating={5}
-                  onRate={(e, { rating }) =>
-                    setInitialFoodRepoState({
-                      ...initialFoodRepoState,
-                      rating: rating
-                    })
-                  }
+                  defaultRating={adhocFormStore.cacheRating}
+                  onRate={(e, { rating }) => {
+                    onChange(e, { name: "rating", value: rating });
+                    setAdhocFormStore({
+                      ...adhocFormStore,
+                      cacheRating: rating
+                    });
+                  }}
                 />
               )}
             </Form.Field>
           </Form.Group>
-          <Button
+          <Label
             content={
-              !isGoogleMapOpen
+              !adhocFormStore.isGoogleMapOpen
                 ? initialFoodRepoState.placeLatLng
                   ? "位置情報を表示する"
                   : "現在地を所得する"
                 : "位置情報を非表示にする"
             }
             onClick={() => {
-              setIsGoogleMapOpen(!isGoogleMapOpen);
+              setAdhocFormStore({
+                ...adhocFormStore,
+                isGoogleMapOpen: !adhocFormStore.isGoogleMapOpen
+              });
             }}
           />
-          {isGoogleMapOpen && initialFoodRepoState.herePlaceLatLng && (
+          {adhocFormStore.isGoogleMapOpen && adhocFormStore.herePlaceLatLng && (
             <Button
               content="位置情報を現在地に設定する"
               onClick={() => {
                 setInitialFoodRepoState({
                   ...initialFoodRepoState,
-                  ...{ placeLatLng: initialFoodRepoState.herePlaceLatLng }
+                  ...{ placeLatLng: adhocFormStore.herePlaceLatLng }
                 });
               }}
             />
@@ -238,12 +332,15 @@ const FoodReportForm = () => {
                   ...initialFoodRepoState,
                   ...{ placeLatLng: null }
                 });
-                setIsGoogleMapOpen(false);
+                setAdhocFormStore({
+                  ...adhocFormStore,
+                  isGoogleMapOpen: false
+                });
               }}
             />
           )}
           {/* <PlacesAutocompleteForm /> */}
-          {isGoogleMapOpen && <GoogleMapSearchForm />}
+          {adhocFormStore.isGoogleMapOpen && <GoogleMapSearchForm />}
 
           <Form.Field>
             <label>ジャンル</label>
@@ -265,19 +362,21 @@ const FoodReportForm = () => {
           <FoodrepoPhotoPage />
           <Form.Field>
             <label>本文</label>
-            {methods.errors.description && (
-              <span>{methods.errors.description.message}</span>
-            )}
+            {methods.errors.text && <span>{methods.errors.text.message}</span>}
             <Form.TextArea
               placeholder={"本文"}
               name="text"
               value={methods.watch("text") || ""}
               onChange={onChange}
-              error={methods.errors.place ? true : false}
+              error={methods.errors.text ? true : false}
             />
           </Form.Field>
 
-          <Button type="submit" disabled={FormIsError(methods.errors)}>
+          <Button
+            type="submit"
+            disabled={FormIsError(methods.errors) || adhocFormStore.isLoading}
+            loading={adhocFormStore.isLoading}
+          >
             Push
           </Button>
           <Button
@@ -290,6 +389,9 @@ const FoodReportForm = () => {
           >
             Reset
           </Button>
+          <Button
+            onClick={() => handleUploadImage(null, adhocFormStore.images[0])}
+          />
         </Form>
       </FormContext>
     </FoodReportContext.Provider>

@@ -24,36 +24,45 @@ const GoogleMapSearchForm = () => {
       }
     });
   };
-  const initialFoodRepoState = FoodReportFormValue.initialFoodRepoState;
-
+  const where = FoodReportFormValue.initialFoodRepoState.placeLatLng;
+  const here = FoodReportFormValue.adhocFormStore.herePlaceLatLng;
+  const setWhere = marker => {
+    FoodReportFormValue.setInitialFoodRepoState({
+      ...FoodReportFormValue.initialFoodRepoState,
+      ...{
+        placeLatLng: { lat: marker.lat, lng: marker.lng }
+      }
+    });
+  };
+  const setHere = marker => {
+    FoodReportFormValue.setAdhocFormStore({
+      ...FoodReportFormValue.adhocFormStore,
+      ...{
+        herePlaceLatLng: { lat: marker.lat, lng: marker.lng }
+      }
+    });
+  };
   useEffect(() => {
-    if (_.get(FoodReportFormValue, `initialFoodRepoState.placeLatLng.lat`)) {
+    if (_.get(where, `lat`)) {
       setMarker({
         ...marker,
         ...{
-          center: initialFoodRepoState.placeLatLng,
-          lat: initialFoodRepoState.placeLatLng.lat,
-          lng: initialFoodRepoState.placeLatLng.lng
+          center: where,
+          lat: where.lat,
+          lng: where.lng
         }
       });
-    } else if (
-      _.get(FoodReportFormValue, `initialFoodRepoState.herePlaceLatLng.lat`)
-    ) {
+    } else if (_.get(here, `lat`)) {
       setMarker({
         ...marker,
         ...{
-          center: initialFoodRepoState.herePlaceLatLng,
-          lat: initialFoodRepoState.herePlaceLatLng.lat,
-          lng: initialFoodRepoState.herePlaceLatLng.lng
+          center: here,
+          lat: here.lat,
+          lng: here.lng
         }
       });
-      FoodReportFormValue.setInitialFoodRepoState({
-        ...initialFoodRepoState,
-        ...{
-          placeLatLng: { lat: marker.lat, lng: marker.lng },
-          herePlaceLatLng: { lat: marker.lat, lng: marker.lng }
-        }
-      });
+      setHere(marker);
+      setWhere(marker);
       console.log("hereState");
     } else {
       navigator.geolocation.getCurrentPosition(position => {
@@ -66,19 +75,14 @@ const GoogleMapSearchForm = () => {
             draggable: false
           }
         });
-        FoodReportFormValue.setInitialFoodRepoState({
-          ...initialFoodRepoState,
-          ...{
-            placeLatLng: { lat: marker.lat, lng: marker.lng },
-            herePlaceLatLng: { lat: marker.lat, lng: marker.lng }
-          }
-        });
+        setHere(marker);
+        setWhere(marker);
         setMarker({ ...marker, ...{ draggable: true } });
       });
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialFoodRepoState]);
+  }, [where]);
 
   return (
     <Segment
@@ -97,11 +101,7 @@ const GoogleMapSearchForm = () => {
         }
         onChildMouseUp={() => {
           setMarker({ ...marker, ...{ draggable: true } });
-          FoodReportFormValue.setInitialFoodRepoState({
-            ...initialFoodRepoState,
-            ...{ placeLatLng: { lat: marker.lat, lng: marker.lng } }
-          });
-          FoodReportFormValue.setIsSubmitting(true);
+          setWhere(marker);
         }}
         onChildMouseMove={(childKey, childProps, mouse) =>
           onCircleInteraction(childKey, childProps, mouse)

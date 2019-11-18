@@ -19,22 +19,28 @@ import {
 import DropzoneInpiut from "./DropzoneInput";
 
 import { FoodReportContext } from "../Form/FoodReportForm";
-import { UserContext } from "../../App";
 
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
+import { toast } from "react-toastify";
 
 // import CropperInput from "./CropperInput"
 
-const FoodrepoPhotoPage = () => {
-  const formValue = useContext(FoodReportContext);
-  const auth = useContext(UserContext);
-  const initialState = formValue.initialFoodRepoState;
+const FoodrepoPhotoPage = prop => {
+  const contextValue = useContext(FoodReportContext);
+  const formValue = prop.length ? prop : contextValue;
+
+  const adhocFormStore = formValue.adhocFormStore;
   const [files, setFiles] = useState([]);
   const [image, setImage] = useState(null);
-  const images = formValue.initialFoodRepoState.images;
+  const images = adhocFormStore.images;
+  const mainImage = adhocFormStore.mainImage;
   const setImages = image =>
-    formValue.setInitialFoodRepoState({ ...initialState, images: image });
+    formValue.setAdhocFormStore({ ...adhocFormStore, images: image });
+  const setMainImage = image => {
+    formValue.setAdhocFormStore({ ...adhocFormStore, mainImage: image });
+    toast.success("メイン画像を変更しました");
+  };
   const cropper = useRef();
   const cropImage = () => {
     if (typeof cropper.current.getCroppedCanvas() === "undefined") {
@@ -45,9 +51,15 @@ const FoodrepoPhotoPage = () => {
     }, "image/jpeg");
   };
   const handleSetImages = image => {
-    setImages([...images, image]);
+    if (!images.length) {
+      formValue.setAdhocFormStore({
+        ...adhocFormStore,
+        ...{ mainImage: image, images: [...images, image] }
+      });
+    } else {
+      setImages([...images, image]);
+    }
     handleCancelCrops();
-    console.log(images);
   };
 
   const handleCancelCrops = async () => {
@@ -55,7 +67,19 @@ const FoodrepoPhotoPage = () => {
     setImage();
   };
   const handleDeleteImages = image => {
-    setImages(_.without(images, image));
+    if (images.length > 1) {
+      formValue.setAdhocFormStore({
+        ...adhocFormStore,
+        images: _.without(images, image),
+        mainImage: _.without(images, image)[0]
+      });
+    } else {
+      formValue.setAdhocFormStore({
+        ...adhocFormStore,
+        images: [],
+        mainImage: null
+      });
+    }
   };
   // const handleSetMainPhoto = async photo => {
   // 	try {
@@ -69,11 +93,12 @@ const FoodrepoPhotoPage = () => {
     return () => {
       files.forEach(file => URL.revokeObjectURL(file.preview));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files]);
   return (
     <Segment>
       <Header dividing size="large" content="Your Photos" />
-      {images.length < 4 && (
+      {images.length < 5 && (
         <Grid>
           <Grid.Column width={4}>
             <Header color="teal" sub content="Step 1 - Add Photo" />
@@ -117,7 +142,6 @@ const FoodrepoPhotoPage = () => {
                   <Button
                     onClick={() => {
                       handleSetImages(image);
-                      console.log(files);
                     }}
                     style={{ width: "100px" }}
                     positive
@@ -135,35 +159,72 @@ const FoodrepoPhotoPage = () => {
         </Grid>
       )}
       <Divider />
-
+      　
       {images.length > 0 && (
-        <Card.Group itemsPerRow={4}>
-          {images.map((image, key) => (
-            <Card key={key}>
-              <Image src={URL.createObjectURL(image)} wrapped ui={false} />
-              <Card.Content extra>
-                <div className="ui two buttons">
-                  <Button basic color="green">
-                    Main
-                  </Button>
-                  <Button
-                    basic
-                    icon="trash"
-                    color="red"
-                    onClick={() => handleDeleteImages(image)}
+        <Grid
+          columns={2}
+          stackable
+          textAlign="center"
+          style={{ backgroundColor: "grey" }}
+        >
+          <Grid.Row verticalAlign="middle">
+            <Grid.Column>
+              {mainImage && (
+                <Card color="green" centered>
+                  <Image
+                    src={URL.createObjectURL(mainImage)}
+                    wrapped
+                    ui={false}
                   />
-                </div>
-              </Card.Content>
-            </Card>
-          ))}{" "}
-        </Card.Group>
+                  <Card.Content textAlign="center">
+                    <Header color="green">Main Photo</Header>
+                    <Card.Meta>{`この画像が一覧に表示されます。`}</Card.Meta>
+                  </Card.Content>
+                  <Card.Content extra>
+                    <Button
+                      fluid
+                      basic
+                      color="red"
+                      content="Delete Main Photo"
+                      onClick={() => handleDeleteImages(mainImage)}
+                    />
+                  </Card.Content>
+                </Card>
+              )}
+            </Grid.Column>
+            <Grid.Column>
+              <Card.Group itemsPerRow={2}>
+                {_.without(images, mainImage).map((image, key) => (
+                  <Card key={key}>
+                    <Image
+                      src={URL.createObjectURL(image)}
+                      wrapped
+                      ui={false}
+                    />
+                    <Card.Content extra>
+                      <div className="ui two buttons">
+                        <Button
+                          basic
+                          color="green"
+                          onClick={() => setMainImage(image)}
+                        >
+                          Main
+                        </Button>
+                        <Button
+                          basic
+                          icon="trash"
+                          color="red"
+                          onClick={() => handleDeleteImages(image)}
+                        />
+                      </div>
+                    </Card.Content>
+                  </Card>
+                ))}{" "}
+              </Card.Group>
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
       )}
-      {/* <UserPhotos
-				photos={photos}
-				profile={profile}
-				deletePhoto={handleDeletePhoto}
-				setMainPhoto={handleSetMainPhoto}
-			/> */}
     </Segment>
   );
 };

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@google-cloud/language": "^3.6.1",
     "cuid": "^2.1.6",
     "date-fns": "^2.6.0",
     "date-fns-tz": "^1.0.8",
@@ -42,5 +43,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "prettier": "^1.19.1"
   }
 }
