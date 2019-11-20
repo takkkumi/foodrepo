@@ -162,7 +162,8 @@ const FoodReportForm = () => {
       title: data.title,
       mainImageURL: _.get(APIdata, "mainImage.url") || null,
       eventPath: APIdata.ref,
-      fulltextsearch: _.chain([user.name, data.title, data.tag])
+      createdAt: APIdata.createdAt,
+      fullTextSearch: _.chain([user.name, data.title, data.tag])
         .flattenDeep()
         .compact()
         .value()

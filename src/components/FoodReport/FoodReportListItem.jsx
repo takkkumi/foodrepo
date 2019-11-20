@@ -1,15 +1,19 @@
 import React from "react";
+import _ from "lodash";
 
-import firebase from "firebase/app";
-import "firebase/firestore";
-import { Card } from "semantic-ui-react";
+import { Card, Image } from "semantic-ui-react";
 
-const mockRef = firebase
-  .firestore()
-  .collection("foodrepo")
-  .doc("V31yyTSvpSC6KJhDmoAb")
-  .get();
-
-export const FoodReportListItem = () => {
-  return <Card></Card>;
+export const FoodReportListItem = ({ props }) => {
+  return (
+    <Card color="red" fluid>
+      <Card.Content>
+        {_.get(props, "title") || ""}
+        <Image
+          floated="right"
+          size="mini"
+          src={_.get(props, "mainImageURL")}
+        />
+      </Card.Content>
+    </Card>
+  );
 };
