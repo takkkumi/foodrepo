@@ -6,17 +6,18 @@ import firebase from "firebase/app";
 import "firebase/auth";
 import LoginUser from "../../Actions/userActions/LoginUser";
 import { japDate } from "../../util/Date";
-
+import { getProps } from "../../util/CustomLodash";
 const Navbar = () => {
- 
   const auth = useContext(UserContext);
-  const user = auth.storeUser;
+  const user = getProps(auth, "storeUser.data", null);
   const [userLogin, setUserLogin] = useState("");
   const SignOut = () => {
     firebase.auth().signOut();
   };
   useEffect(() => {
-    if (user && user.lastLogin && user.lastLogin.toDate()) {
+    if (getProps(user, "isLogin")) {
+      setUserLogin("ログイン中");
+    } else if (getProps(user, "lastLogin.toDate")) {
       setUserLogin(japDate(user.lastLogin.toDate(), "yo年MMMdo日HH時mm分"));
     }
   }, [user]);
@@ -35,11 +36,10 @@ const Navbar = () => {
 
         <Menu fluid>
           <Menu.Menu position="right">
-            <Menu.Item as={NavLink} to="/home" >
+            <Menu.Item as={NavLink} to="/home">
               ok
             </Menu.Item>
             <Menu.Item as={NavLink} to="/foodrepolist">
-              
               foodReportList
             </Menu.Item>
           </Menu.Menu>

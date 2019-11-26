@@ -22,18 +22,20 @@ import "firebase/firestore";
 import FoodrepoPhotoPage from "../Photo/FoodrepoPhotoPage";
 import { uploadImage } from "../../Actions/PhotoAction";
 import { FirebaseRegister, batchSetter } from "../../Actions/FirestoreAction";
-// import PlacesAutocompleteForm from "./PlacesAutocompleteForm"
+import { getProps } from "../../util/CustomLodash";
+
+// import PlacesAutocompleteForm from "./PlacesAutocompleteForm"s
 export const FoodReportContext = createContext();
 const FoodReportForm = () => {
   const auth = useContext(UserContext);
-  const user = auth.storeUser;
+  const user = getProps(auth, "storeUser.data", null);
   const [options] = useState([
-    { key: 1, text: "カレー", value: "curry" },
-    { key: 2, text: "中華料理", value: "chinese" },
-    { key: 3, text: "洋風料理", value: "europian" },
-    { key: 4, text: "和食", value: "japanese" },
-    { key: 5, text: "ラーメン", value: "ramen" },
-    { key: 6, text: "居酒屋", value: "tevern" }
+    { key: 1, text: "カレー", value: "カレー" },
+    { key: 2, text: "中華料理", value: "中華料理" },
+    { key: 3, text: "洋風料理", value: "洋風料理" },
+    { key: 4, text: "和食", value: "和食" },
+    { key: 5, text: "ラーメン", value: "ラーメン" },
+    { key: 6, text: "居酒屋", value: "居酒屋" }
   ]);
 
   const methods = useForm();
@@ -79,7 +81,7 @@ const FoodReportForm = () => {
         `${user.userUid}/foodrepo/${foodRepoId}`
       );
       const uploadedImageURL = await uploadedImage.ref.getDownloadURL();
-      const uploadedImageRef = uploadedImage.ref.fullPath;
+      const uploadedImageRef = uploadedImage.ref;
       const uploadedImageName = uploadedImage.ref.name;
 
       return {
@@ -102,12 +104,12 @@ const FoodReportForm = () => {
     const foodrepo = "foodrepo";
     const collection = firebase.firestore().collection(foodrepo);
     const foodRepoDocId = initialFoodRepoState.id || collection.doc().id;
-    const foodRepoDocRef = collection.doc(foodRepoDocId);
     let batch = firebase.firestore().batch();
     const now = firebase.firestore.FieldValue.serverTimestamp();
     const APIdata = {
       updatedAt: now,
-      createdAt: initialFoodRepoState.createdAt || now
+      createdAt: initialFoodRepoState.createdAt || now,
+      id: foodRepoDocId
     };
     if (initialFoodRepoState.placeLatLng) {
       const geoPoint = new firebase.firestore.GeoPoint(
@@ -117,7 +119,6 @@ const FoodReportForm = () => {
       APIdata.placeLatLng = geoPoint;
     }
 
-    APIdata.ref = foodRepoDocRef;
     let Images;
 
     if (adhocFormStore.mainImage) {
@@ -155,24 +156,24 @@ const FoodReportForm = () => {
           image.name
         );
       });
+
     const searchField = {
-      author: user.userUid,
-      authorName: user.name,
-      tag: data.tag ? data.tag : [],
+      authorRef: getProps(auth, "storeUser.ref", null),
+      place: getProps(data, "place", null),
+      rating: getProps(data, "rating", null),
+      tag: getProps(data, "tag", []),
       title: data.title,
-      mainImageURL: _.get(APIdata, "mainImage.url") || null,
-      eventPath: APIdata.ref,
+      mainImageURL: getProps(APIdata, "mainImage.url", null),
+
       createdAt: APIdata.createdAt,
-      fullTextSearch: _.chain([user.name, data.title, data.tag])
-        .flattenDeep()
-        .compact()
-        .value()
+      textSlice: data.text.slice(0, 180),
+      textHasMore: data.text.length > 180
     };
     batchSetter(searchField, "eventSearch", foodRepoDocId, "set", batch);
     console.log(searchField);
     await batch.commit();
 
-    resetState(data);
+    resetState(initialFoodRepoState, methods.getValues());
     toast.success(`『${formSubmit.title}』を更新しました`);
     setAdhocFormStore({
       ...adhocFormStore,
@@ -181,6 +182,7 @@ const FoodReportForm = () => {
       images: []
     });
   };
+
   useEffect(() => {
     methods.register(
       { name: "title" },
@@ -221,7 +223,6 @@ const FoodReportForm = () => {
       });
     }
     setIsSubmitting(false);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isSubmitting]);
   return (
@@ -298,6 +299,7 @@ const FoodReportForm = () => {
               )}
             </Form.Field>
           </Form.Group>
+
           <Label
             content={
               !adhocFormStore.isGoogleMapOpen
@@ -316,6 +318,7 @@ const FoodReportForm = () => {
           {adhocFormStore.isGoogleMapOpen && adhocFormStore.herePlaceLatLng && (
             <Button
               content="位置情報を現在地に設定する"
+              compact
               onClick={() => {
                 setInitialFoodRepoState({
                   ...initialFoodRepoState,
@@ -327,6 +330,8 @@ const FoodReportForm = () => {
           {initialFoodRepoState.placeLatLng && (
             <Button
               content="位置情報を削除する"
+              basic
+              compact
               negative
               onClick={() => {
                 setInitialFoodRepoState({
@@ -390,9 +395,7 @@ const FoodReportForm = () => {
           >
             Reset
           </Button>
-          <Button
-            onClick={() => handleUploadImage(null, adhocFormStore.images[0])}
-          />
+          {/* <Button onClick={() => httpsRequest(methods.watch("text"))} /> */}
         </Form>
       </FormContext>
     </FoodReportContext.Provider>

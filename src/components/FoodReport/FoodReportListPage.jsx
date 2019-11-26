@@ -5,12 +5,15 @@ import { FoodReportListItem } from "./FoodReportListItem";
 import { Card } from "semantic-ui-react";
 export const FoodReportListPage = () => {
   const [docs, setDocs] = useState(null);
-
+ const [query,setQuery] = useState({
+   collection: "eventSearch",
+   option:null
+ })
   useEffect(() => {
     const f = async () => {
       const getData= await firebase
         .firestore()
-        .collection("eventSearch")
+        .collection(query.collection)
         .orderBy("createdAt","desc")
         .limit(10)
         .get()
@@ -18,9 +21,9 @@ export const FoodReportListPage = () => {
        ;
     };
     f();
-docs&&console.log(docs[0])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    
+  }, [query]);
   return (
 
       <Card.Group>

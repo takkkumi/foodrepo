@@ -93,7 +93,6 @@ const FoodrepoPhotoPage = prop => {
     return () => {
       files.forEach(file => URL.revokeObjectURL(file.preview));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files]);
   return (
     <Segment>
@@ -158,8 +157,7 @@ const FoodrepoPhotoPage = prop => {
           </Grid.Column>
         </Grid>
       )}
-      <Divider />
-      　
+      <Divider />　
       {images.length > 0 && (
         <Grid
           columns={2}

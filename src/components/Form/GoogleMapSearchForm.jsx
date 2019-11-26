@@ -65,22 +65,25 @@ const GoogleMapSearchForm = () => {
       setWhere(marker);
       console.log("hereState");
     } else {
-      navigator.geolocation.getCurrentPosition(position => {
-        setMarker({
-          ...marker,
-          ...{
-            center: [position.coords.latitude, position.coords.longitude],
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            draggable: false
-          }
+      try {
+        navigator.geolocation.getCurrentPosition(position => {
+          setMarker({
+            ...marker,
+            ...{
+              center: [position.coords.latitude, position.coords.longitude],
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              draggable: false
+            }
+          });
+          setHere(marker);
+          setWhere(marker);
+          setMarker({ ...marker, ...{ draggable: true } });
         });
-        setHere(marker);
-        setWhere(marker);
-        setMarker({ ...marker, ...{ draggable: true } });
-      });
+      } catch (error) {
+        console.log(error);
+      }
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [where]);
 

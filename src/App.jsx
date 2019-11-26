@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext } from "react";
-import { Grid, Container } from "semantic-ui-react";
+import { Grid } from "semantic-ui-react";
 import { Route, Switch } from "react-router-dom";
 import HomePage from "./components/Home/HomePage";
 import SideBar from "./components/SideBar/SideBar";
@@ -26,12 +26,15 @@ const App = () => {
         const getFirestoreState = async () => {
           try {
             if (user) {
-              let loginUser = await firebase
+              let loginUserRef = firebase
                 .firestore()
                 .collection("user")
-                .doc(user.uid)
-                .get();
-              setStoreUser(loginUser.data());
+                .doc(user.uid);
+              let loginUser = await loginUserRef.get();
+              setStoreUser({
+                data: loginUser.data(),
+                ref: loginUserRef
+              });
             }
           } catch (error) {
             console.log(error);
@@ -40,6 +43,14 @@ const App = () => {
 
         getFirestoreState();
       } else {
+        const f = async () => {
+          await firebase
+            .firestore()
+            .collection("user")
+            .doc(user.uid)
+            .update({ isLogin: false });
+        };
+        user && f();
         setUser(null);
         setIsLogin(false);
         setStoreUser(null);
@@ -52,33 +63,31 @@ const App = () => {
 
   return (
     <UserContext.Provider value={{ user, isLogin, storeUser }}>
-      <Container>
-        <Grid>
-          <Grid.Row>
-            <Navbar />
-          </Grid.Row>
+      <Grid container>
+        <Grid.Row>
+          <Navbar />
+        </Grid.Row>
 
-          <Grid.Row>
-            <Grid.Column width={3}>
-              <SideBar />
-            </Grid.Column>
-            <Grid.Column width={13}>
-              <Switch>
-                <Route path="/home" exact>
-                  <HomePage />
-                </Route>
-                <Route path="/user/:id" exact>
-                  <UserPage />
-                </Route>
-                <Route path="/foodrepolist" exact>
-                  <FoodReportListPage />
-                </Route>
-              </Switch>
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
-        <ToastContainer />
-      </Container>
+        <Grid.Row>
+          <Grid.Column width={3}>
+            <SideBar />
+          </Grid.Column>
+          <Grid.Column width={13}>
+            <Switch>
+              <Route path="/home" exact>
+                <HomePage />
+              </Route>
+              <Route path="/user/:id" exact>
+                <UserPage />
+              </Route>
+              <Route path="/foodrepolist" exact>
+                <FoodReportListPage />
+              </Route>
+            </Switch>
+          </Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <ToastContainer />
     </UserContext.Provider>
   );
 };

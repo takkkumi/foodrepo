@@ -21,13 +21,15 @@ const LoginUser = async () => {
 					email: user.email,
 					userPhoto: user.photoURL,
 					createdAt: now,
-					lastLogin: now
+					lastLogin: now,
+					isLogin:true
 				})
 		} else {
 			db.collection("user")
 				.doc(String(user.uid))
 				.update({
-					lastLogin: now
+					lastLogin: now,
+					isLogin:true
 				})
 		}
 	} catch (error) {
