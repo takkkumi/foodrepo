@@ -24,6 +24,8 @@ import { uploadImage } from "../../Actions/PhotoAction";
 import { FirebaseRegister, batchSetter } from "../../Actions/FirestoreAction";
 import { getProps } from "../../util/CustomLodash";
 
+
+
 // import PlacesAutocompleteForm from "./PlacesAutocompleteForm"s
 export const FoodReportContext = createContext();
 const FoodReportForm = () => {
@@ -164,8 +166,8 @@ const FoodReportForm = () => {
       tag: getProps(data, "tag", []),
       title: data.title,
       mainImageURL: getProps(APIdata, "mainImage.url", null),
-
       createdAt: APIdata.createdAt,
+      createdAtDate: new Date().toLocaleDateString(),
       textSlice: data.text.slice(0, 180),
       textHasMore: data.text.length > 180
     };
@@ -314,17 +316,19 @@ const FoodReportForm = () => {
                 isGoogleMapOpen: !adhocFormStore.isGoogleMapOpen
               });
             }}
+            as="a"
           />
           {adhocFormStore.isGoogleMapOpen && adhocFormStore.herePlaceLatLng && (
-            <Button
+            <Label
               content="位置情報を現在地に設定する"
-              compact
+              
               onClick={() => {
                 setInitialFoodRepoState({
                   ...initialFoodRepoState,
                   ...{ placeLatLng: adhocFormStore.herePlaceLatLng }
                 });
               }}
+              as="a"
             />
           )}
           {initialFoodRepoState.placeLatLng && (
@@ -332,6 +336,7 @@ const FoodReportForm = () => {
               content="位置情報を削除する"
               basic
               compact
+              size="small"
               negative
               onClick={() => {
                 setInitialFoodRepoState({

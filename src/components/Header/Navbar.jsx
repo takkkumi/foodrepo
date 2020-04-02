@@ -2,21 +2,18 @@ import React, { useContext, useState, useEffect } from "react";
 import { Header, Image, Menu, Container, Dropdown } from "semantic-ui-react";
 import { NavLink } from "react-router-dom";
 import { UserContext } from "../../App";
-import firebase from "firebase/app";
 import "firebase/auth";
-import LoginUser from "../../Actions/userActions/LoginUser";
+import { LoginUser, LogoutUser } from "../../Actions/userActions/LoginUser";
 import { japDate } from "../../util/Date";
 import { getProps } from "../../util/CustomLodash";
 const Navbar = () => {
   const auth = useContext(UserContext);
   const user = getProps(auth, "storeUser.data", null);
   const [userLogin, setUserLogin] = useState("");
-  const SignOut = () => {
-    firebase.auth().signOut();
-  };
+
   useEffect(() => {
     if (getProps(user, "isLogin")) {
-      setUserLogin("ログイン中");
+      setUserLogin("　ログイン中");
     } else if (getProps(user, "lastLogin.toDate")) {
       setUserLogin(japDate(user.lastLogin.toDate(), "yo年MMMdo日HH時mm分"));
     }
@@ -26,9 +23,8 @@ const Navbar = () => {
       <Header as="h2" color="orange">
         {user ? (
           <>
-            Hello {user.name}{" "}
             <Image size="mini" src={user.userPhoto} verticalAlign="top" />
-            {userLogin}
+            Hello {user.name} {userLogin}
           </>
         ) : (
           "Hello"
@@ -52,7 +48,7 @@ const Navbar = () => {
                     LogIn
                   </Dropdown.Item>
                 ) : (
-                  <Dropdown.Item onClick={() => SignOut()}>
+                  <Dropdown.Item onClick={() => LogoutUser(user)}>
                     LogOut
                   </Dropdown.Item>
                 )}

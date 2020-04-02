@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import firebase from "firebase/app";
 import "firebase/firestore";
 import { FoodReportListItem } from "./FoodReportListItem";
-import { Card } from "semantic-ui-react";
+import { Card, Modal } from "semantic-ui-react";
 export const FoodReportListPage = () => {
   const [docs, setDocs] = useState(null);
  const [query,setQuery] = useState({
@@ -21,15 +21,17 @@ export const FoodReportListPage = () => {
        ;
     };
     f();
-
+return setDocs(null)
     
   }, [query]);
   return (
 
       <Card.Group>
        {docs&&docs.map(searchDoc => 
-        
-        <FoodReportListItem props={searchDoc.data()} key={searchDoc.id} /> 
+        <Modal trigger={ <FoodReportListItem props={searchDoc.data()} key={searchDoc.id} /> }>
+          a
+        </Modal>
+       
       )} 
   </Card.Group>
   

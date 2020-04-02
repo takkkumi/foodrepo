@@ -58,22 +58,22 @@ exports.fullTextSearch = asiafunctions.firestore
       .value();
     const fullTextSearchArray = _.chain([
         fullTextSearch.map(a => tokenizeArray(a)),
-        updatedEvent.tag
+        updatedEvent.tag&&  updatedEvent.tag
       ])
       .flattenDeep()
       .compact()
       .uniq()
       .value();
 
-    const fullTextSearchNgram = _.chain([
-        fullTextSearch.map(a => tokenize(a)),
+    const fullTextSearchTitleTag = _.chain([
+        [ updatedEvent.title].map(a => tokenize(a)),
         updatedEvent.tag
       ])
       .flattenDeep()
       .uniq()
       .value();
     let fullTextSearchObject = {};
-    fullTextSearchNgram.map(
+    fullTextSearchTitleTag.map(
       token =>
       (fullTextSearchObject = {
         ...fullTextSearchObject,
@@ -81,7 +81,7 @@ exports.fullTextSearch = asiafunctions.firestore
       })
     );
 
-    console.log(Buffer.byteLength(fullTextSearchArray.join("")));
+    console.log("byte=",Buffer.byteLength(fullTextSearchArray.join("")));
     await admin
       .firestore()
       .collection("eventSearch")

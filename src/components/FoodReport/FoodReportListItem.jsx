@@ -15,7 +15,7 @@ export const FoodReportListItem = ({ props }) => {
     getProps(props, "authorRef.get") && f();
   }, [props]);
   return (
-    <Card color="red" fluid>
+    <Card color="red" fluid  >  
       <Card.Content>
         {" "}
         <Header floated="left" style={{ whiteSpace: "pre-line" }}>

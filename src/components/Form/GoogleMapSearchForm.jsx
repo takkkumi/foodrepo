@@ -43,7 +43,7 @@ const GoogleMapSearchForm = () => {
     });
   };
   useEffect(() => {
-    if (_.get(where, `lat`)) {
+    if (!_.isNil(_.get(where, `lat`)) ) {
       setMarker({
         ...marker,
         ...{
@@ -52,7 +52,7 @@ const GoogleMapSearchForm = () => {
           lng: where.lng
         }
       });
-    } else if (_.get(here, `lat`)) {
+    } else if (!_.isNil(_.get(here, `lat`))) {
       setMarker({
         ...marker,
         ...{
