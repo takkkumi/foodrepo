@@ -63,7 +63,7 @@ const App = () => {
 						<Grid.Column width={13}>
 							<Switch>
 								<Route path="/" exact>
-									<HomePage />
+							<HomePage />
 								</Route>
 								<Route path="/user/:id" exact>
 									<UserPage />

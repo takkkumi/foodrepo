@@ -1,23 +1,23 @@
-import React, { useContext, useState, useEffect } from "react"
-import { Header, Image, Menu, Container, Dropdown } from "semantic-ui-react"
-import { UserContext } from "../../App"
-import firebase from "firebase/app"
-import "firebase/auth"
-import LoginUser from "../../Actions/userActions/LoginUser"
-import { japDate } from "../../util/Date"
+import React, { useContext, useState, useEffect } from "react";
+import { Header, Image, Menu, Container, Dropdown } from "semantic-ui-react";
+import { UserContext } from "../../App";
+import firebase from "firebase/app";
+import "firebase/auth";
+import LoginUser from "../../Actions/userActions/LoginUser";
+import { japDate } from "../../util/Date";
 
 const Navbar = () => {
-	const auth = useContext(UserContext)
-	const user = auth.storeUser
-	const [userLogin, setUserLogin] = useState("")
+	const auth = useContext(UserContext);
+	const user = auth.storeUser;
+	const [userLogin, setUserLogin] = useState("");
 	const SignOut = () => {
-		firebase.auth().signOut()
-	}
+		firebase.auth().signOut();
+	};
 	useEffect(() => {
 		if (user && user.lastLogin && user.lastLogin.toDate()) {
-			setUserLogin(japDate(user.lastLogin.toDate(), "yo年MMMdo日HH時mm分"))
+			setUserLogin(japDate(user.lastLogin.toDate(), "yo年MMMdo日HH時mm分"));
 		}
-	}, [user])
+	}, [user]);
 	return (
 		<Container>
 			<Header as="h2" color="orange">
@@ -54,7 +54,7 @@ const Navbar = () => {
 				</Menu>
 			</Header>
 		</Container>
-	)
-}
+	);
+};
 
-export default Navbar
+export default Navbar;
