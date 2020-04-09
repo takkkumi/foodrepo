@@ -4,7 +4,12 @@ import { Card, Image, Feed, Header, Label } from "semantic-ui-react";
 import { getProps } from "../../util/CustomLodash";
 import { japDate } from "../../util/Date";
 
-export const FoodReportListItem = ({ props }) => {
+export const FoodReportListItem = ({
+  props,
+  setControllModal,
+  id,
+  controllModal
+}) => {
   const [user, setUser] = useState(null);
   useEffect(() => {
     const f = async () => {
@@ -15,11 +20,18 @@ export const FoodReportListItem = ({ props }) => {
     getProps(props, "authorRef.get") && f();
   }, [props]);
   return (
-    <Card color="red" fluid  >  
+    <Card color="red" fluid>
       <Card.Content>
         {" "}
         <Header floated="left" style={{ whiteSpace: "pre-line" }}>
-          <Card.Header>{getProps(props, "title", "")} </Card.Header>
+          <Card.Header
+            as="a"
+            onClick={() =>
+              setControllModal({ ...controllModal, ...{ [id]: true } })
+            }
+          >
+            {getProps(props, "title", "")}{" "}
+          </Card.Header>
           <Card.Meta style={{ fontSize: "0.7em" }}>
             {getProps(props, "place")}
             {getProps(props, "tag") &&
@@ -61,7 +73,11 @@ export const FoodReportListItem = ({ props }) => {
                   src={getProps(props, "mainImageURL")}
                 />
               )}
-              <Feed.Summary>
+              <Feed.Summary
+                onClick={() =>
+                  setControllModal({ ...controllModal, ...{ [id]: true } })
+                }
+              >
                 {getProps(props, "textSlice")}
                 {getProps(props, "textHasMore") && "..."}
               </Feed.Summary>
