@@ -24,8 +24,6 @@ import { uploadImage } from "../../Actions/PhotoAction";
 import { FirebaseRegister, batchSetter } from "../../Actions/FirestoreAction";
 import { getProps } from "../../util/CustomLodash";
 
-
-
 // import PlacesAutocompleteForm from "./PlacesAutocompleteForm"s
 export const FoodReportContext = createContext();
 const FoodReportForm = () => {
@@ -44,14 +42,13 @@ const FoodReportForm = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const defaultInitialFoodRepoState = {
-    author: "",
-    authorName: "",
     title: "",
     place: "",
     placeLatLng: null,
     rating: null,
     tag: [],
     mainImage: null,
+    image: {},
     description: "",
     text: ""
   };
@@ -88,7 +85,7 @@ const FoodReportForm = () => {
 
       return {
         url: uploadedImageURL,
-        path: uploadedImageRef,
+        path: uploadedImageRef.fullPath,
         name: uploadedImageName
       };
     } catch (error) {
@@ -141,23 +138,30 @@ const FoodReportForm = () => {
         )
       );
     }
+    initialFoodRepoState.image = Images.reduce(
+      (a, b) => ({
+        ...a,
+        [b.name]: b
+      }),
+      {}
+    );
     const formSubmit = FormFetchData(initialFoodRepoState, data, APIdata);
 
     await FirebaseRegister(formSubmit, foodrepo, foodRepoDocId);
 
-    Images &&
-      Images.forEach(image => {
-        image.createdAt = now;
-        batchSetter(
-          image,
-          foodrepo,
-          foodRepoDocId,
-          "set",
-          batch,
-          "photo",
-          image.name
-        );
-      });
+    // Images &&
+    //   Images.forEach(image => {
+    //     image.createdAt = now;
+    //     batchSetter(
+    //       image,
+    //       foodrepo,
+    //       foodRepoDocId,
+    //       "set",
+    //       batch,
+    //       "photo",
+    //       image.name
+    //     );
+    //   });
 
     const searchField = {
       authorRef: getProps(auth, "storeUser.ref", null),
@@ -221,7 +225,7 @@ const FoodReportForm = () => {
     if (user) {
       setInitialFoodRepoState({
         ...initialFoodRepoState,
-        ...{ author: user.userUid, authorName: user.name }
+        ...{ authorRef: getProps(auth, "storeUser.ref", null) }
       });
     }
     setIsSubmitting(false);
@@ -321,7 +325,6 @@ const FoodReportForm = () => {
           {adhocFormStore.isGoogleMapOpen && adhocFormStore.herePlaceLatLng && (
             <Label
               content="位置情報を現在地に設定する"
-              
               onClick={() => {
                 setInitialFoodRepoState({
                   ...initialFoodRepoState,
