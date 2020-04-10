@@ -3,10 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-<<<<<<< HEAD
-=======
-    "@google-cloud/language": "^3.8.0",
->>>>>>> master
     "cuid": "^2.1.6",
     "date-fns": "^2.6.0",
     "date-fns-tz": "^1.0.8",

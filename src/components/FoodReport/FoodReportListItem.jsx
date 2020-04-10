@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"
 
-import { Card, Image, Feed, Header, Label } from "semantic-ui-react";
-import { getProps } from "../../util/CustomLodash";
-import { japDate } from "../../util/Date";
+import { Card, Image, Feed, Header, Label } from "semantic-ui-react"
+import { getProps } from "../../util/CustomLodash"
+import { japDate } from "../../util/Date"
 
 export const FoodReportListItem = ({
   props,
@@ -10,15 +10,15 @@ export const FoodReportListItem = ({
   id,
   controllModal
 }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null)
   useEffect(() => {
     const f = async () => {
-      const getAuthor = await props.authorRef.get();
-      setUser(getAuthor.data());
-    };
+      const getAuthor = await props.authorRef.get()
+      setUser(getAuthor.data())
+    }
 
-    getProps(props, "authorRef.get") && f();
-  }, [props]);
+    getProps(props, "authorRef.get") && f()
+  }, [props])
   return (
     <Card color="red" fluid>
       <Card.Content>
@@ -86,5 +86,5 @@ export const FoodReportListItem = ({
         </Feed>
       </Card.Content>
     </Card>
-  );
-};
+  )
+}
