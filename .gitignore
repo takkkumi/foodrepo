@@ -18,7 +18,12 @@
 .env.test.local
 .env.production.local
 /src/config
-
+.firebase
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.prettierrc
+functions/serviceaccount.json
+yarn.lock
+functions/package-lock.json
+
