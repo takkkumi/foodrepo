@@ -68,6 +68,7 @@ const App = () => {
           <Navbar />
         </Grid.Row>
 
+<<<<<<< HEAD
         <Grid.Row>
           <Grid.Column width={3}>
             <SideBar />
@@ -91,5 +92,28 @@ const App = () => {
     </UserContext.Provider>
   );
 };
+=======
+					<Grid.Row>
+						<Grid.Column width={3}>
+							<SideBar />
+						</Grid.Column>
+						<Grid.Column width={13}>
+							<Switch>
+								<Route path="/" exact>
+							<HomePage />
+								</Route>
+								<Route path="/user/:id" exact>
+									<UserPage />
+								</Route>
+							</Switch>
+						</Grid.Column>
+					</Grid.Row>
+				</Grid>
+				<ToastContainer />
+			</Container>
+		</UserContext.Provider>
+	)
+}
+>>>>>>> master
 
 export default App;
