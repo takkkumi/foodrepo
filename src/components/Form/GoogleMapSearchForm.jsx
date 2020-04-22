@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from "react"
-import _ from "lodash"
 import GoogleMapReact from "google-map-react"
 import { googleMapAPIkey } from "../../config/googleMapAPI"
 import { Icon, Segment } from "semantic-ui-react"
@@ -43,7 +42,7 @@ const GoogleMapSearchForm = () => {
 		})
 	}
 	useEffect(() => {
-		if (!_.isNil(_.get(where, `lat`))) {
+		if (where?.lat) {
 			setMarker({
 				...marker,
 				...{
@@ -52,7 +51,7 @@ const GoogleMapSearchForm = () => {
 					lng: where.lng
 				}
 			})
-		} else if (!_.isNil(_.get(here, `lat`))) {
+		} else if (where?.lat) {
 			setMarker({
 				...marker,
 				...{

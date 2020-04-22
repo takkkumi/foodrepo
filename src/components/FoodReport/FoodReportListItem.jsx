@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react"
 
 import { Card, Image, Feed, Header, Label } from "semantic-ui-react"
-import { getProps } from "../../util/CustomLodash"
 import { japDate } from "../../util/Date"
 
 export const FoodReportListItem = ({
@@ -13,11 +12,11 @@ export const FoodReportListItem = ({
   const [user, setUser] = useState(null)
   useEffect(() => {
     const f = async () => {
-      const getAuthor = await props.authorRef.get()
+      const getAuthor = await props?.authorRef?.get()
       setUser(getAuthor.data())
     }
 
-    getProps(props, "authorRef.get") && f()
+    f()
   }, [props])
   return (
     <Card color="red" fluid>
@@ -30,12 +29,12 @@ export const FoodReportListItem = ({
               setControllModal({ ...controllModal, ...{ [id]: true } })
             }
           >
-            {getProps(props, "title", "")}{" "}
+            {props?.title ?? ""}{" "}
           </Card.Header>
           <Card.Meta style={{ fontSize: "0.7em" }}>
-            {getProps(props, "place")}
-            {getProps(props, "tag") &&
-              props.tag.map((element, key) => (
+            {props?.place}
+            {
+              props?.tag?.map((element, key) => (
                 <Label key={key}>{element}</Label>
               ))}
           </Card.Meta>
@@ -43,15 +42,15 @@ export const FoodReportListItem = ({
         <Header floated="right">
           <Feed size="large">
             <Feed.Event>
-              <Feed.Label image={getProps(user, "userPhoto")} />
+              <Feed.Label image={user?.userPhoto} />
               <Feed.Content>
                 <Feed.Summary>
                   <Feed.User>
                     {" "}
-                    {getProps(user, "name", "unknownUser")}
+                    {user?.name ?? "unknownUser"}
                   </Feed.User>
                   <Feed.Date>
-                    {getProps(props, "createdAt.toDate") &&
+                    {props?.createdAt?.toDate &&
                       japDate(props.createdAt.toDate(), "yo年MMMdo日HH時mm分")}
                     更新
                   </Feed.Date>
@@ -66,20 +65,20 @@ export const FoodReportListItem = ({
         <Feed>
           <Feed.Event>
             <Feed.Content>
-              {getProps(props, "mainImageURL") && (
-                <Image
-                  floated="left"
-                  size="tiny"
-                  src={getProps(props, "mainImageURL")}
-                />
-              )}
+
+              <Image
+                floated="left"
+                size="tiny"
+                src={props?.mainImageURL}
+              />
+
               <Feed.Summary
                 onClick={() =>
                   setControllModal({ ...controllModal, ...{ [id]: true } })
                 }
               >
-                {getProps(props, "textSlice")}
-                {getProps(props, "textHasMore") && "..."}
+                {props.textSlice}
+                {props.textHasMore && "..."}
               </Feed.Summary>
             </Feed.Content>
           </Feed.Event>

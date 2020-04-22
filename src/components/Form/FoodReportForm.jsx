@@ -22,13 +22,13 @@ import "firebase/firestore"
 import FoodrepoPhotoPage from "../Photo/FoodrepoPhotoPage"
 import { uploadImage } from "../../Actions/PhotoAction"
 import { FirebaseRegister, batchSetter } from "../../Actions/FirestoreAction"
-import { getProps } from "../../util/CustomLodash"
+
 
 // import PlacesAutocompleteForm from "./PlacesAutocompleteForm"s
 export const FoodReportContext = createContext()
 const FoodReportForm = () => {
 	const auth = useContext(UserContext)
-	const user = getProps(auth, "storeUser.data", null)
+	const user = auth?.storeUser?.data ?? null
 	const [options] = useState([
 		{ key: 1, text: "カレー", value: "カレー" },
 		{ key: 2, text: "中華料理", value: "中華料理" },
@@ -138,13 +138,13 @@ const FoodReportForm = () => {
 				)
 			)
 		}
-		initialFoodRepoState.image = Images.reduce(
+		initialFoodRepoState.image = Images?.reduce(
 			(a, b) => ({
 				...a,
 				[b.name]: b
 			}),
 			{}
-		)
+		) ?? []
 		const formSubmit = FormFetchData(initialFoodRepoState, data, APIdata)
 
 		await FirebaseRegister(formSubmit, foodrepo, foodRepoDocId)
@@ -164,12 +164,12 @@ const FoodReportForm = () => {
 		//   });
 
 		const searchField = {
-			authorRef: getProps(auth, "storeUser.ref", null),
-			place: getProps(data, "place", null),
-			rating: getProps(data, "rating", null),
-			tag: getProps(data, "tag", []),
+			authorRef: auth?.storeUser?.ref ?? null,
+			place: data.place ?? null,
+			rating: data.rating ?? null,
+			tag: data.tag ?? [],
 			title: data.title,
-			mainImageURL: getProps(APIdata, "mainImage.url", null),
+			mainImageURL: APIdata?.mainImage?.url ?? null,
 			createdAt: APIdata.createdAt,
 			createdAtDate: new Date().toLocaleDateString(),
 			textSlice: data.text.slice(0, 180),
@@ -225,7 +225,7 @@ const FoodReportForm = () => {
 		if (user) {
 			setInitialFoodRepoState({
 				...initialFoodRepoState,
-				...{ authorRef: getProps(auth, "storeUser.ref", null) }
+				...{ authorRef: auth?.storeUser?.ref ?? null }
 			})
 		}
 		setIsSubmitting(false)

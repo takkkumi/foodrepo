@@ -5,16 +5,16 @@ import { UserContext } from "../../App"
 import "firebase/auth"
 import { LoginUser, LogoutUser } from "../../Actions/userActions/LoginUser"
 import { japDate } from "../../util/Date"
-import { getProps } from "../../util/CustomLodash"
+
 const Navbar = () => {
   const auth = useContext(UserContext)
-  const user = getProps(auth, "storeUser.data", null)
+  const user = auth?.storeUser?.data ?? null
   const [userLogin, setUserLogin] = useState("")
 
   useEffect(() => {
-    if (getProps(user, "isLogin")) {
+    if (user?.isLogin) {
       setUserLogin("　ログイン中")
-    } else if (getProps(user, "lastLogin.toDate")) {
+    } else if (user?.lastLogin?.toDate) {
       setUserLogin(japDate(user.lastLogin.toDate(), "yo年MMMdo日HH時mm分"))
     }
   }, [user])
