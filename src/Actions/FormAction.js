@@ -1,4 +1,4 @@
-import _ from "lodash"
+
 
 export const FormResetState = (initialState, formData, setValue) => {
 	if (formData) {
@@ -14,11 +14,10 @@ export const FormFetchData = (initialState, formData, APIdata) => {
 		...formData,
 		...APIdata
 	}
-	const reFormattedData = () => {
-		for (let key in mergeData) {
-			if (!mergeData[key]) {
-				delete mergeData[key]
-			}
+	const reFormattedData = {}
+	for (let key in mergeData) {
+		if (mergeData[key]) {
+			reFormattedData[key] = mergeData[key]
 		}
 	}
 	return reFormattedData

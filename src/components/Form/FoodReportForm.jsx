@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, createContext } from "react"
-import _ from "lodash"
+
 import {
 	Form,
 	Button,
@@ -39,6 +39,7 @@ const FoodReportForm = () => {
 	])
 
 	const methods = useForm()
+	const now = firebase.firestore.FieldValue.serverTimestamp()
 
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const defaultInitialFoodRepoState = {
@@ -86,7 +87,8 @@ const FoodReportForm = () => {
 			return {
 				url: uploadedImageURL,
 				path: uploadedImageRef.fullPath,
-				name: uploadedImageName
+				name: uploadedImageName,
+				createdAt: now
 			}
 		} catch (error) {
 			console.log(error)
@@ -104,7 +106,6 @@ const FoodReportForm = () => {
 		const collection = firebase.firestore().collection(foodrepo)
 		const foodRepoDocId = initialFoodRepoState.id || collection.doc().id
 		let batch = firebase.firestore().batch()
-		const now = firebase.firestore.FieldValue.serverTimestamp()
 		const APIdata = {
 			updatedAt: now,
 			createdAt: initialFoodRepoState.createdAt || now,
@@ -129,10 +130,10 @@ const FoodReportForm = () => {
 			Images = [mainImage]
 
 			await Promise.all(
-				_.without(adhocFormStore.images, adhocFormStore.mainImage).map(
+				adhocFormStore.images.filter(image => image !== adhocFormStore.mainImage).map(
 					async image => {
 						const uploadImage = await handleUploadImage(foodRepoDocId, image)
-						uploadImage.createdAt = now
+
 						Images.push(uploadImage)
 					}
 				)
@@ -144,7 +145,7 @@ const FoodReportForm = () => {
 				[b.name]: b
 			}),
 			{}
-		) ?? []
+		) ?? null
 		const formSubmit = FormFetchData(initialFoodRepoState, data, APIdata)
 
 		await FirebaseRegister(formSubmit, foodrepo, foodRepoDocId)
@@ -180,6 +181,7 @@ const FoodReportForm = () => {
 		await batch.commit()
 
 		resetState(initialFoodRepoState, methods.getValues())
+		console.log(formSubmit)
 		toast.success(`『${formSubmit.title}』を更新しました`)
 		setAdhocFormStore({
 			...adhocFormStore,
@@ -359,7 +361,7 @@ const FoodReportForm = () => {
 					<Form.Field>
 						<label>ジャンル</label>
 						{methods.errors.tag && (
-							<label>{_.get(methods, "errors.tag.message")}</label>
+							<label>{methods.errors?.tag?.message}</label>
 						)}
 						<Dropdown
 							name="tag"

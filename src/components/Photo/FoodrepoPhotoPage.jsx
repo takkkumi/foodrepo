@@ -5,7 +5,6 @@ import React, {
 	useContext,
 	useRef
 } from "react"
-import _ from "lodash"
 import {
 	Segment,
 	Header,
@@ -68,10 +67,11 @@ const FoodrepoPhotoPage = prop => {
 	}
 	const handleDeleteImages = image => {
 		if (images.length > 1) {
+			const fillimage = images.filter(img => img !== image)
 			formValue.setAdhocFormStore({
 				...adhocFormStore,
-				images: _.without(images, image),
-				mainImage: _.without(images, image)[0]
+				images: fillimage,
+				mainImage: fillimage[0]
 			})
 		} else {
 			formValue.setAdhocFormStore({
@@ -192,7 +192,7 @@ const FoodrepoPhotoPage = prop => {
 						</Grid.Column>
 						<Grid.Column>
 							<Card.Group itemsPerRow={2}>
-								{_.without(images, mainImage).map((image, key) => (
+								{images.filter(image => image !== mainImage).map((image, key) => (
 									<Card key={key}>
 										<Image
 											src={URL.createObjectURL(image)}
